@@ -1,8 +1,10 @@
 package com.example.kafka;
 
 import com.github.javafaker.Faker;
-import org.apache.kafka.clients.producer.*;
-import org.apache.kafka.common.serialization.IntegerSerializer;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,8 +15,8 @@ import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 
-public class PizzaProducer {
-    public static final Logger logger = LoggerFactory.getLogger(PizzaProducer.class);
+public class PizzaProducerCustomPartitioner {
+    public static final Logger logger = LoggerFactory.getLogger(PizzaProducerCustomPartitioner.class);
     public static CountDownLatch countDownLatch;
 
     public static void sendPizzaMessage(KafkaProducer<String, String> kafkaProducer, String topicName, int iterCount,
@@ -81,7 +83,7 @@ public class PizzaProducer {
     }
 
     public static void main(String[] args) throws InterruptedException {
-        String topicName = "pizza-topic";
+        String topicName = "pizza-topic-partitioner";
         // KafkaProducer configuration setting
         // null, "hello world"
 
@@ -91,9 +93,11 @@ public class PizzaProducer {
         props.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         props.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
 
-        props.setProperty(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG, "50000");
+        props.setProperty("custom.specialKey", "P001");
+        props.setProperty(ProducerConfig.PARTITIONER_CLASS_CONFIG, CustomPartitioner.class.getName());
+
 //        props.setProperty(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, "6");
-        props.setProperty(ProducerConfig.ACKS_CONFIG, "all");
+//        props.setProperty(ProducerConfig.ACKS_CONFIG, "all");
 //        props.setProperty(ProducerConfig.ACKS_CONFIG, "0");
 //        props.setProperty(ProducerConfig.BATCH_SIZE_CONFIG, "32000");
 //        props.setProperty(ProducerConfig.LINGER_MS_CONFIG, "20");
@@ -104,7 +108,7 @@ public class PizzaProducer {
         int iterCount = 10;
         countDownLatch = new CountDownLatch(iterCount);
         new Thread(() -> {
-            sendPizzaMessage(kafkaProducer, topicName, iterCount, 10, 100, 100, false);
+            sendPizzaMessage(kafkaProducer, topicName, iterCount, 10, 100, 100, true);
         }).start();
 
         countDownLatch.await();
