@@ -81,7 +81,7 @@ public class PizzaProducer {
     }
 
     public static void main(String[] args) throws InterruptedException {
-        String topicName = "pizza-topic";
+        String topicName = "pizza-topic2";
         // KafkaProducer configuration setting
         // null, "hello world"
 
@@ -101,10 +101,10 @@ public class PizzaProducer {
         // KafkaProducer 객체 생성
         KafkaProducer<String, String> kafkaProducer = new KafkaProducer<>(props);
 
-        int iterCount = 10;
+        int iterCount = 10000000;
         countDownLatch = new CountDownLatch(iterCount);
         new Thread(() -> {
-            sendPizzaMessage(kafkaProducer, topicName, iterCount, 10, 100, 100, false);
+            sendPizzaMessage(kafkaProducer, topicName, iterCount, 1000, 0, 0, true);
         }).start();
 
         countDownLatch.await();

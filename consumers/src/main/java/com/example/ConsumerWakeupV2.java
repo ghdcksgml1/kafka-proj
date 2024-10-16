@@ -13,19 +13,20 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Properties;
 
-public class ConsumerWakeup {
-    private static final Logger logger = LoggerFactory.getLogger(ConsumerWakeup.class);
+public class ConsumerWakeupV2 {
+    private static final Logger logger = LoggerFactory.getLogger(ConsumerWakeupV2.class);
 
     public static void main(String[] args) {
-        String topicName = "pizza-topic";
+        String topicName = "pizza-topic2";
 
         Properties props = new Properties();
         props.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         props.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         props.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
 //        props.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "group-01");
-        props.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "group-01-static");
+        props.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "group-02");
 //        props.setProperty(ConsumerConfig.GROUP_INSTANCE_ID_CONFIG, "3");
+        props.setProperty(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, "60000");
 
         KafkaConsumer<String, String> kafkaConsumer = new KafkaConsumer<>(props);
         kafkaConsumer.subscribe(List.of(topicName));
@@ -42,12 +43,22 @@ public class ConsumerWakeup {
             }
         }));
 
+        int lootCnt = 0;
         try {
             while (true) {
                 ConsumerRecords<String, String> consumerRecords = kafkaConsumer.poll(Duration.ofMillis(1000));
+                logger.info(" ####### loopCnt:{}, consumerRecords Count: {}", lootCnt++, consumerRecords.count());
                 for (ConsumerRecord<String, String> record : consumerRecords) {
                     logger.info("Record Key: {}, Value: {}, Partition: {}",
                             record.key(), record.value(), record.partition());
+                }
+
+                try {
+                    long sleepTime = lootCnt * 10000;
+                    logger.info("Main Thread is Sleeping {} ms during while loop", sleepTime);
+                    Thread.sleep(sleepTime);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
         } catch (WakeupException e) {
