@@ -81,7 +81,7 @@ public class PizzaProducer {
     }
 
     public static void main(String[] args) throws InterruptedException {
-        String topicName = "pizza-topic2";
+        String topicName = "pizza-topic-ex";
         // KafkaProducer configuration setting
         // null, "hello world"
 
