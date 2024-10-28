@@ -32,7 +32,7 @@ public class FileAppendProducer {
         File file = new File("/home/hongchanhui/kafka-core/kafka-proj/practice/src/main/resources/pizza_append.txt");
         EventHandler fileEventHandler = new FileEventHandler(topicName, kafkaProducer, true);
 
-        FileEventSource eventSource = new FileEventSource(100, file, fileEventHandler);
+        FileEventSource eventSource = new FileEventSource(1000, file, fileEventHandler);
         Thread fileEventSourceThread = new Thread(eventSource);
         fileEventSourceThread.start();
 
