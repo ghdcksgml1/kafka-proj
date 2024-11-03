@@ -85,10 +85,17 @@ public class BaseConsumer<K extends Serializable, V extends Serializable> {
     private void pollCommitSync(long durationMillis) {
         ConsumerRecords<K, V> records = this.kafkaConsumer.poll(Duration.of(durationMillis, ChronoUnit.MILLIS));
         processRecords(records);
+        this.kafkaConsumer.commitSync();
     }
 
-    private void pollCommitAsync(long durationMillis) {
-
+    private void pollCommitAsync(long durationMillis) throws WakeupException, Exception {
+        ConsumerRecords<K, V> records = this.kafkaConsumer.poll(Duration.of(durationMillis, ChronoUnit.MILLIS));
+        processRecords(records);
+        this.kafkaConsumer.commitAsync((offsets, exception) -> {
+            if (exception != null) {
+                logger.error("offsets {} is not completed, error: {}", offsets, exception.getMessage());
+            }
+        });
     }
 
     public static void main(String[] args) {
@@ -104,7 +111,7 @@ public class BaseConsumer<K extends Serializable, V extends Serializable> {
         BaseConsumer<String, String> baseConsumer = new BaseConsumer<>(properties, List.of(topicName));
         String commitMode = "sync";
 
-        baseConsumer.pollConsumes(200, commitMode);
+        baseConsumer.pollConsumes(100, commitMode);
         baseConsumer.closeConsumer();
     }
 }
